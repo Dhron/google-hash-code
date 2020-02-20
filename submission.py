@@ -13,14 +13,6 @@ class Book():
     score = 0
 
 class Library:
-    num_books = 0
-    setup_time = 0
-    daily_ship = 0
-    books = []
-    signed_up = False
-    setup_time_left = setup_time
-    books_shipped = []
-
     def __init__(self, ID, num_books, setup_time, daily_ship, books):
         self.id = ID
         self.num_books = num_books
@@ -30,6 +22,9 @@ class Library:
         self.books = sorted(books, key=lambda x: book_score_table[x], reverse=True)
         print(self.books)
         self.setup_time_left = setup_time
+        self.signed_up = False
+        self.setup_time_left = setup_time
+        self.books_shipped = []
         
 
 # signups can only happen one at a time
@@ -67,6 +62,8 @@ def parse_input():
     
     # print(library_list)
     print(book_score_table)
+    for l in library_list:
+        print(l.__dict__)
 
 
 def scan(lib):
@@ -99,6 +96,12 @@ def run():
             if len(sl.books) > 0:
                 scan(sl)
 
+    print("\n")
+    for l in library_list:
+        print(l.__dict__)
+    print("\n")
+
+    print("Output")
     print(len(scan_list))
     for i in scan_list:
         print(i.id, len(i.books_shipped))
