@@ -1,7 +1,14 @@
 import sys
 import os
 
+score = 0
 book_score_table = {}
+library_list = [] # list of libraries to be set up
+books = 0
+days = 0
+libraries = 0
+scan_list = []
+
 class Book():
     score = 0
 
@@ -10,22 +17,35 @@ class Library:
     setup_time = 0
     daily_ship = 0
     books = []
-    
-    def __init__(self, num_books, setup_time, daily_ship, books):
-        self.num_books = books
+    signed_up = False
+    setup_time_left = setup_time
+    books_shipped = []
+
+    def __init__(self, ID, num_books, setup_time, daily_ship, books):
+        self.id = ID
+        self.num_books = num_books
         self.setup_time = setup_time
         self.daily_ship = daily_ship
-        self.books = books
+        self.books = sorted(books, key=lambda x: book_score_table[x], reverse=True)
+        self.setup_time_left = setup_time
         
-    
+
 # signups can only happen one at a time
 # need to schedule what the optimal ordering of signups are
 # order low to high?
 
-def signup_library():
-    pass
+def signup_library(need_to_signup):
+    if len(need_to_signup) > 0:
+        need_to_signup[0].setup_time_left -= 1
+        if need_to_signup[0].setup_time_left <= 0:
+            need_to_signup[0].setup_time_left = 0
+            need_to_signup[0].signed_up = True
+            lib = need_to_signup.pop(0)
+            scan_list.append(lib)
+
 
 def parse_input():
+    global library_list, book_score_table, books, days, libraries
     books_libraries_days = list(map(int, input().split(" ")))
     
     books = books_libraries_days[0]
@@ -37,16 +57,46 @@ def parse_input():
     for i in range(len(book_scores)):
         book_score_table[i] = book_scores[i]
     
-    library_list = [] # list of libraries to be set up
-    
     # process library information
     for i in range(libraries):
         library_information = list(map(int, input().split(" ")))
         book_indices = list(map(int, input().split(" ")))
-        library_list.append(Library(library_information[0], library_information[1], library_information[2], book_indices))
+        library_list.append(Library(i, library_information[0], library_information[1], library_information[2], book_indices))
     
     print(library_list)
+    print(book_score_table)
+
+
+def scan(lib):
+    global score, book_score_table
+    for i in range(lib.daily_ship):
+        if len(lib.books) == 0:
+            return
+
+        book_to_ship = lib.books.pop(0)
+        score += book_score_table[book_to_ship]
+        book_score_table[book_to_ship] = 0
+        
+        lib.books_shipped.append(book_to_ship)
+        # lib.books = sorted(books, key=lambda x: book_score_table[x], reverse=True)
+
+def run():
+    global library_list, book_score_table, books, days, libraries, scan_list
+    
+    need_to_signup = sorted(library_list, key=lambda x: x.setup_time, reverse=False)
+    library_list.sort(key=lambda x: x.setup_time, reverse=False)
+
+    for d in range(days):
+        if need_to_signup:
+            signup_library(need_to_signup)  
+        
+        for i in scan_list:
+            if len(i.books) > 0:
+                scan(i)
+
+    print(len(scan_list))
+    print(scan_list[0].id)
     
 if __name__ == "__main__":
     parse_input()
-    pass
+    run()
